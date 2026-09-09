@@ -89,9 +89,16 @@ python -m src.rag.rag_pipeline             # Chunking + BM25 + RRF + citations (
 python -m src.lakehouse.delta_pipeline     # Delta Bronze/Silver/Gold + MERGE (needs Java)
 ```
 
-**Run the Airflow DAG against the real scheduler:**
+**Run the Airflow DAG against the real scheduler (optional — evidence already captured, see below):**
+
+Airflow is deliberately *not* in `requirements.txt` — it pins its own dependencies very
+strictly and bundling it with everything else can break the whole install if your Python
+version doesn't match what Airflow supports that day. Install it in its own isolated
+environment (a fresh virtualenv, or its own Colab runtime) if you want to rerun this stage:
 
 ```bash
+python -m venv af_venv && source af_venv/bin/activate
+pip install "apache-airflow==2.9.3" --constraint "https://raw.githubusercontent.com/apache/airflow/constraints-2.9.3/constraints-3.12.txt"
 export AIRFLOW_HOME=$(pwd)/airflow_home
 export AIRFLOW__CORE__DAGS_FOLDER=$(pwd)/src/orchestration
 export AIRFLOW__CORE__LOAD_EXAMPLES=False

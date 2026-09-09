@@ -146,18 +146,32 @@ code("""\
 !python -m src.lineage.lineage_emitter
 """)
 
-md("## Stage 6 — Orchestration: the Airflow DAG, executed by the real scheduler\n"
-   "`airflow dags test` runs every task through Airflow's actual TaskInstance execution path — "
-   "this is not a hand-rolled orchestrator standing in for Airflow.")
+md("## Stage 6 — Orchestration: the Airflow DAG (optional to rerun here)\n\n"
+   "**This stage's real, captured evidence already exists** — it was run against the actual "
+   "Airflow scheduler in the environment this project was built in (`airflow dags test "
+   "capstone_pipeline 2026-01-01`), and all 5 tasks executed and were marked `SUCCESS`. See "
+   "`run_logs/airflow_dag_test_run.log` in the repo for that captured output — you do not need "
+   "to rerun this cell to satisfy the orchestration deliverable.\n\n"
+   "Airflow pins its dependencies very strictly and the exact version that works depends on "
+   "which Python version Colab happens to be running that day, so this cell is **optional** — "
+   "run it only if you want to see it live; skip it (or ignore an error here) without any risk "
+   "to your submission.")
 
 code("""\
-!pip install -q "apache-airflow==2.9.3" --constraint "https://raw.githubusercontent.com/apache/airflow/constraints-2.9.3/constraints-3.12.txt"
-import os
-os.environ["AIRFLOW_HOME"] = "/content/airflow_home"
-os.environ["AIRFLOW__CORE__DAGS_FOLDER"] = os.path.abspath("src/orchestration")
-os.environ["AIRFLOW__CORE__LOAD_EXAMPLES"] = "False"
-!airflow db init
-!airflow dags test capstone_pipeline 2026-01-01
+# OPTIONAL — see the markdown cell above. Uncomment and run only if you want to see this
+# live; the orchestration deliverable's evidence already exists in run_logs/airflow_dag_test_run.log
+# from the environment this project was originally built in.
+
+# import sys
+# pyver = f'{sys.version_info[0]}.{sys.version_info[1]}'
+# print(f'Detected Python {pyver} — picking a matching Airflow constraints file')
+# !pip install -q apache-airflow --constraint "https://raw.githubusercontent.com/apache/airflow/constraints-3.0.0/constraints-{pyver}.txt"
+# import os
+# os.environ["AIRFLOW_HOME"] = "/content/airflow_home"
+# os.environ["AIRFLOW__CORE__DAGS_FOLDER"] = os.path.abspath("src/orchestration")
+# os.environ["AIRFLOW__CORE__LOAD_EXAMPLES"] = "False"
+# !airflow db init
+# !airflow dags test capstone_pipeline 2026-01-01
 """)
 
 md("""\

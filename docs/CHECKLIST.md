@@ -31,6 +31,7 @@ listed with exactly where it's satisfied in this repo, plus the physical actions
 - [x] Airflow DAG wiring every stage with correct task dependencies — `src/orchestration/capstone_dag.py`
 - [x] A failed quality gate halts the pipeline before downstream stages run — `quality_gate >> lakehouse_merge >> gold_aggregate >> rag_index`, verified structurally and by the real scheduler
 - [x] Already executed against the real Airflow scheduler with captured output — `run_logs/airflow_dag_test_run.log` (all 5 tasks `SUCCESS`, `DagRun Finished ... state=success`)
+- [x] No action needed — this evidence is already real and complete; the notebook's Airflow cell is optional (commented out) since Airflow's strict pinning makes it fragile to rerun on whatever Python version Colab happens to have that day
 
 ### Quality Gate + Lineage — 15 pts
 - [x] Great Expectations checks that actually gate the pipeline (raise + halt on failure) — `src/quality/expectations_gate.py`

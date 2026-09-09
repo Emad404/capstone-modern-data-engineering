@@ -9,4 +9,3 @@ numpy
 pandas
 great-expectations
 openlineage-python
-apache-airflow==2.9.3
