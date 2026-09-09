@@ -55,11 +55,59 @@ md("## Stage 1 — Ingestion: Kafka producer/consumer + Pydantic data contract\n
 code("""\
 # Real local Kafka broker (Colab has Java preinstalled). ~15-20s to finish starting.
 !pip install -q kafka-python
-!curl -sSOL https://downloads.apache.org/kafka/3.7.0/kafka_2.13-3.7.0.tgz && tar -xzf kafka_2.13-3.7.0.tgz
-!cd kafka_2.13-3.7.0 && bin/kafka-storage.sh format -t $(bin/kafka-storage.sh random-uuid) -c config/kraft/server.properties
-!cd kafka_2.13-3.7.0 && nohup bin/kafka-server-start.sh config/kraft/server.properties > /tmp/kafka.log 2>&1 &
+""")
+
+code("""\
+%%bash
+# Tries a few known mirrors in order and verifies each download is a real gzip file
+# before unpacking, instead of silently failing on one hardcoded URL like before.
+set -e
+KAFKA_VERSION=3.7.0
+SCALA_VERSION=2.13
+FILE="kafka_${SCALA_VERSION}-${KAFKA_VERSION}.tgz"
+DIR="kafka_${SCALA_VERSION}-${KAFKA_VERSION}"
+
+rm -f "$FILE"
+rm -rf "$DIR"
+
+MIRRORS=(
+  "https://downloads.apache.org/kafka/${KAFKA_VERSION}/${FILE}"
+  "https://archive.apache.org/dist/kafka/${KAFKA_VERSION}/${FILE}"
+  "https://dlcdn.apache.org/kafka/${KAFKA_VERSION}/${FILE}"
+)
+
+OK=0
+for url in "${MIRRORS[@]}"; do
+  echo "Trying: $url"
+  curl -sSL --fail -o "$FILE" "$url" || { echo "  -> request failed"; continue; }
+  if file "$FILE" | grep -qi gzip; then
+    echo "  -> downloaded a valid gzip archive. Using this mirror."
+    OK=1
+    break
+  else
+    echo "  -> downloaded something, but it is NOT a gzip file (likely a 404/error page). Trying next mirror."
+    rm -f "$FILE"
+  fi
+done
+
+if [ "$OK" -ne 1 ]; then
+  echo ""
+  echo "ERROR: could not download a valid Kafka archive from any mirror."
+  echo "If you're seeing this, check https://kafka.apache.org/downloads for the current"
+  echo "version and tell Claude — it will update the pinned KAFKA_VERSION above."
+  exit 1
+fi
+
+tar -xzf "$FILE"
+cd "$DIR"
+bin/kafka-storage.sh format -t "$(bin/kafka-storage.sh random-uuid)" -c config/kraft/server.properties
+nohup bin/kafka-server-start.sh config/kraft/server.properties > /tmp/kafka.log 2>&1 &
+echo "Kafka broker starting in the background (PID $!)."
+""")
+
+code("""\
 import time; time.sleep(20)
-print("Kafka broker should be up — check /tmp/kafka.log if the next cell can't connect.")
+print("Kafka broker should be up now — if the next cell still can't connect, run: !cat /tmp/kafka.log")
 """)
 
 code("""\
