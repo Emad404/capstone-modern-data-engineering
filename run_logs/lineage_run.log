@@ -1,0 +1,20 @@
+=== Stage 1: ingestion (succeeds) ===
+  🔷 [LINEAGE] START  ingestion_gate  (run_id=01a087f5-2595-726f-8071-6b8098178e57)
+  🟢 [LINEAGE] COMPLETE ingestion_gate
+
+=== Stage 2: quality_gate (deliberately fails, proving FAIL events fire) ===
+  🔷 [LINEAGE] START  quality_gate  (run_id=01a087f5-2596-7390-9a9d-1711b18775dd)
+  🔴 [LINEAGE] FAIL   quality_gate  -> 2 expectations failed: duplicate order_id, quantity out of range
+  (exception re-raised to caller as designed — this is what halts Airflow's downstream tasks)
+
+=== Stage 3: gold_aggregation (succeeds) ===
+  🔷 [LINEAGE] START  gold_aggregation  (run_id=01a087f5-2597-7d36-94bf-bc39e7ae4d71)
+  🟢 [LINEAGE] COMPLETE gold_aggregation
+
+✅ Lineage events written to run_logs/lineage_events.jsonl:
+  START    ingestion_gate       run=01a087f5  at 2026-09-09T20:56:25.237519+00:00
+  COMPLETE ingestion_gate       run=01a087f5  at 2026-09-09T20:56:25.238189+00:00
+  START    quality_gate         run=01a087f5  at 2026-09-09T20:56:25.238821+00:00
+  FAIL     quality_gate         run=01a087f5  at 2026-09-09T20:56:25.239161+00:00
+  START    gold_aggregation     run=01a087f5  at 2026-09-09T20:56:25.239906+00:00
+  COMPLETE gold_aggregation     run=01a087f5  at 2026-09-09T20:56:25.240235+00:00
