@@ -39,9 +39,14 @@ own Day 2 lab uses exactly this pattern.
 """)
 
 code("""\
-# If running in Colab, clone the repo (skip if you already have it open locally).
+# If you already have this repo cloned locally (running Jupyter from inside it), skip
+# cloning. In Colab, always wipe any stale /content/repo from a previous attempt in this
+# session and clone fresh, so this cell is safe to re-run as many times as needed.
 import os
-if not os.path.exists("src"):
+if os.path.exists("src"):
+    print("Found src/ in the current directory — assuming this repo is already checked out, skipping clone.")
+else:
+    !rm -rf repo
     !git clone https://github.com/Emad404/capstone-modern-data-engineering.git repo
     %cd repo
 
