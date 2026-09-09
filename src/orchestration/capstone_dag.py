@@ -69,7 +69,7 @@ def _task_quality_gate(**context) -> None:
 
 def _task_lakehouse_merge(**context) -> None:
     with track_stage("lakehouse_merge", inputs=["data/bronze/orders"], outputs=["data/silver/orders"]):
-        # Real implementation: src.lakehouse.delta_pipeline.merge_into_silver(spark)
+        # Real implementation: src.lakehouse.delta_pipeline.merge_into_silver(spark, batch_df)
         # (Spark session creation is intentionally kept out of the DAG's driver process;
         # in production this task submits a Spark job rather than running Spark inline.)
         print("Delta MERGE into Silver — see src/lakehouse/delta_pipeline.py for the full Spark job")

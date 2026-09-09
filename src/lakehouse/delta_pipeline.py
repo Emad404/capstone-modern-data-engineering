@@ -61,30 +61,52 @@ def reset_lakehouse() -> None:
         Path(p).parent.mkdir(parents=True, exist_ok=True)
 
 
-def write_bronze(spark: SparkSession, events: list[dict]) -> None:
-    """Append-only raw landing — every valid event, no dedup."""
+def write_bronze(spark: SparkSession, events: list[dict]) -> "DataFrame":
+    """Append-only raw landing — every valid event, no dedup. Returns the batch just written
+    (not the whole cumulative Bronze table), so callers can MERGE that batch specifically."""
+    from pyspark.sql import DataFrame  # noqa: F401 (type hint only)
     df = spark.createDataFrame([Row(**e) for e in events], schema=ORDER_SCHEMA)
     df.write.format("delta").mode("append").save(BRONZE_PATH)
     print(f"  🥉 [BRONZE] appended {df.count()} rows -> {BRONZE_PATH}")
+    return df
 
 
-def merge_into_silver(spark: SparkSession) -> None:
+def merge_into_silver(spark: SparkSession, batch_df) -> None:
     """
-    Real Delta MERGE keyed on order_id: re-deliveries of the same order_id
-    UPDATE the existing Silver row (e.g. a price correction), brand-new
-    order_ids INSERT. This is the upsert the rubric requires — not an append.
-    """
-    bronze_df = spark.read.format("delta").load(BRONZE_PATH)
+    Real Delta MERGE keyed on order_id: re-deliveries of the same order_id in a later
+    batch UPDATE the existing Silver row (e.g. a price correction), brand-new order_ids
+    INSERT. This is the upsert the rubric requires — not an append.
 
+    Takes the specific incoming batch as the MERGE source (not the whole cumulative
+    Bronze table) — Delta's MERGE rejects a source where two rows match the same target
+    key, which the full Bronze history would trigger the moment any order_id appears in
+    more than one ingestion wave (exactly what Wave 2 below deliberately does, to prove
+    the UPDATE path). Operating on just the new batch is also the realistic pattern: a
+    streaming/micro-batch MERGE always merges the increment, never replays full history.
+    """
     if not DeltaTable.isDeltaTable(spark, SILVER_PATH):
-        bronze_df.write.format("delta").mode("overwrite").save(SILVER_PATH)
-        print(f"  🥈 [SILVER] initial load -> {bronze_df.count()} rows")
+        batch_df.write.format("delta").mode("overwrite").save(SILVER_PATH)
+        print(f"  🥈 [SILVER] initial load -> {batch_df.count()} rows")
         return
+
+    # Defensive: if the batch itself somehow contains duplicate order_ids, keep only the
+    # last occurrence so the MERGE source never has two rows matching one target row.
+    from pyspark.sql import Window
+    from pyspark.sql import functions as F
+
+    deduped_batch = (
+        batch_df
+        .withColumn("_row_num", F.row_number().over(
+            Window.partitionBy("order_id").orderBy(F.monotonically_increasing_id().desc())
+        ))
+        .filter("_row_num = 1")
+        .drop("_row_num")
+    )
 
     silver_table = DeltaTable.forPath(spark, SILVER_PATH)
     (
         silver_table.alias("silver")
-        .merge(bronze_df.alias("bronze"), "silver.order_id = bronze.order_id")
+        .merge(deduped_batch.alias("batch"), "silver.order_id = batch.order_id")
         .whenMatchedUpdateAll()
         .whenNotMatchedInsertAll()
         .execute()
@@ -142,12 +164,12 @@ def run_lakehouse_demo(batch_1: list[dict], batch_2_updates_and_new: list[dict])
     reset_lakehouse()
 
     print("\n=== WAVE 1: initial ingestion ===")
-    write_bronze(spark, batch_1)
-    merge_into_silver(spark)
+    batch1_df = write_bronze(spark, batch_1)
+    merge_into_silver(spark, batch1_df)
 
     print("\n=== WAVE 2: re-delivery with price corrections + brand-new orders ===")
-    write_bronze(spark, batch_2_updates_and_new)
-    merge_into_silver(spark)
+    batch2_df = write_bronze(spark, batch_2_updates_and_new)
+    merge_into_silver(spark, batch2_df)
 
     print("\n=== Schema enforcement proof ===")
     prove_schema_enforcement(spark)

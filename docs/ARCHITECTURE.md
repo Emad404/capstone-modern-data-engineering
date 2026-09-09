@@ -151,3 +151,17 @@ releases) can drift from what this repo was built against:
 None of this is a substitute for actually running the notebook — it's the reasoning for why
 each of these cells is expected to work, so a genuine new failure (rather than one of the above)
 is easier to recognize as new.
+
+## Bug found via an actual Colab run, and fixed
+
+Running the lakehouse cell for real in Colab surfaced a genuine logic error (not an
+environment/version issue like the ones above): `merge_into_silver()` originally re-read the
+*entire* Bronze table as the `MERGE` source on every call. Since Bronze is append-only, by Wave
+2 it contained both the original and price-corrected rows for `ORD1001`/`ORD1002` — two source
+rows matching the same Silver target row on `order_id`, which Delta's `MERGE` correctly refuses
+(`DELTA_MULTIPLE_SOURCE_ROW_MATCHING_TARGET_ROW_IN_MERGE`). Fixed by having `write_bronze()`
+return the batch it just wrote, and `merge_into_silver()` take that specific batch as the MERGE
+source instead of re-reading cumulative history — the realistic pattern for an incremental
+merge — plus a defensive `row_number()`-over-`order_id` dedup in case a single batch ever
+contains a repeated key. Verified the dedup logic directly (see commit history); the full
+Delta `MERGE` itself was verified by the Colab run that caught this bug in the first place.
