@@ -113,3 +113,41 @@ once in Google Colab (which has unrestricted internet and preinstalled Java, exa
 course's own Day 2 and Day 4 labs already assume) — `notebooks/capstone_pipeline.ipynb` is that
 run. Re-running it end to end regenerates every log in `run_logs/` with the full — not
 partial — set of real, captured evidence.
+
+**Follow-up verification done without a live Colab session.** Two additional risks were
+checked before handing this off, since Colab's environment (Python version, latest package
+releases) can drift from what this repo was built against:
+
+- **PySpark 3.5.0 on newer Python (no stdlib `distutils`).** `pyspark/sql/pandas/utils.py`
+  imports `distutils`, which was removed from the standard library in Python 3.12. Confirmed by
+  actually running `delta_pipeline.py`'s exact `createDataFrame(list[Row]) -> groupBy -> agg`
+  pattern on a Python install with no real `distutils` present: it works, because `setuptools`
+  (present in every pip environment, Colab included) installs a compatibility shim that
+  transparently provides a working `distutils` regardless of Python version. No code change
+  needed.
+- **`io.delta:delta-spark_2.12:3.2.0` Maven Central resolution.** The build sandbox's Ivy
+  resolution reported `UNRESOLVED DEPENDENCIES ... not found` against Maven Central,
+  `spark-packages`, and local caches. Confirmed via direct lookup that this artifact genuinely
+  exists on Maven Central (published May 2024) and is built against Spark 3.5.x, matching the
+  pinned `pyspark==3.5.0` — the sandbox's error was its own network policy blocking/mangling the
+  request, not a real problem with the pinned versions.
+- **`kafka-python`'s public API after its 3.x rewrite.** The library's internals were rewritten
+  around an asyncio event loop in version 3.0 (visible in tracebacks as `kafka.net.manager` /
+  `async def` frames, rather than the older synchronous client). Confirmed via the project's own
+  documentation that the high-level API this repo calls — `KafkaProducer(bootstrap_servers=,
+  value_serializer=)`, `KafkaConsumer(...)`, iterating with `for msg in consumer` — is
+  unchanged; a `KafkaTimeoutError: ECONNREFUSED` failure here means the broker itself never
+  started (see the mirror-fallback logic in `notebooks/capstone_pipeline.ipynb`'s Kafka cell),
+  not an API incompatibility.
+- **`requirements.txt` no longer includes `apache-airflow`.** Airflow pins its dependencies
+  strictly enough that bundling it into one shared `pip install -r requirements.txt` broke the
+  *entire* install (not just Airflow) the moment the runtime's Python version didn't satisfy
+  Airflow's constraint — which is exactly what happened when Colab's default Python moved to
+  3.13+. Airflow evidence for this project already exists (`run_logs/airflow_dag_test_run.log`,
+  captured against the real scheduler in an isolated venv) and does not need to be reproduced in
+  Colab; see the notebook's orchestration section for the optional, isolated install command if
+  you want to run it anyway.
+
+None of this is a substitute for actually running the notebook — it's the reasoning for why
+each of these cells is expected to work, so a genuine new failure (rather than one of the above)
+is easier to recognize as new.

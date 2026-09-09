@@ -106,8 +106,27 @@ echo "Kafka broker starting in the background (PID $!)."
 """)
 
 code("""\
-import time; time.sleep(20)
-print("Kafka broker should be up now — if the next cell still can't connect, run: !cat /tmp/kafka.log")
+# Actively poll port 9092 instead of guessing a fixed wait time — more robust
+# against a slower broker startup than a flat sleep would be.
+import socket
+import time
+
+def kafka_port_open(host="localhost", port=9092, timeout=1.0):
+    try:
+        with socket.create_connection((host, port), timeout=timeout):
+            return True
+    except OSError:
+        return False
+
+print("Waiting for the Kafka broker to accept connections on localhost:9092 ...")
+for attempt in range(60):
+    if kafka_port_open():
+        print(f"Kafka broker is up (after ~{attempt}s).")
+        break
+    time.sleep(1)
+else:
+    print("Kafka broker did not open port 9092 within 60s.")
+    print("Run: !cat /tmp/kafka.log   to see what's wrong before continuing.")
 """)
 
 code("""\
