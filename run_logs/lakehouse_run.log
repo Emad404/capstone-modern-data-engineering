@@ -1,0 +1,102 @@
+26/09/09 20:54:50 WARN Utils: Your hostname, vm resolves to a loopback address: 127.0.0.1; using 192.0.2.2 instead (on interface eth0)
+26/09/09 20:54:50 WARN Utils: Set SPARK_LOCAL_IP if you need to bind to another address
+:: loading settings :: url = jar:file:/usr/local/lib/python3.12/dist-packages/pyspark/jars/ivy-2.5.1.jar!/org/apache/ivy/core/settings/ivysettings.xml
+Ivy Default Cache set to: /root/.ivy2/cache
+The jars for the packages stored in: /root/.ivy2/jars
+io.delta#delta-spark_2.12 added as a dependency
+:: resolving dependencies :: org.apache.spark#spark-submit-parent-61f33316-e8de-4a23-ab57-8e8cec1b926e;1.0
+	confs: [default]
+:: resolution report :: resolve 1584ms :: artifacts dl 0ms
+	:: modules in use:
+	---------------------------------------------------------------------
+	|                  |            modules            ||   artifacts   |
+	|       conf       | number| search|dwnlded|evicted|| number|dwnlded|
+	---------------------------------------------------------------------
+	|      default     |   1   |   0   |   0   |   0   ||   0   |   0   |
+	---------------------------------------------------------------------
+
+:: problems summary ::
+:::: WARNINGS
+		module not found: io.delta#delta-spark_2.12;3.2.0
+
+	==== local-m2-cache: tried
+
+	  file:/root/.m2/repository/io/delta/delta-spark_2.12/3.2.0/delta-spark_2.12-3.2.0.pom
+
+	  -- artifact io.delta#delta-spark_2.12;3.2.0!delta-spark_2.12.jar:
+
+	  file:/root/.m2/repository/io/delta/delta-spark_2.12/3.2.0/delta-spark_2.12-3.2.0.jar
+
+	==== local-ivy-cache: tried
+
+	  /root/.ivy2/local/io.delta/delta-spark_2.12/3.2.0/ivys/ivy.xml
+
+	  -- artifact io.delta#delta-spark_2.12;3.2.0!delta-spark_2.12.jar:
+
+	  /root/.ivy2/local/io.delta/delta-spark_2.12/3.2.0/jars/delta-spark_2.12.jar
+
+	==== central: tried
+
+	  https://repo1.maven.org/maven2/io/delta/delta-spark_2.12/3.2.0/delta-spark_2.12-3.2.0.pom
+
+	  -- artifact io.delta#delta-spark_2.12;3.2.0!delta-spark_2.12.jar:
+
+	  https://repo1.maven.org/maven2/io/delta/delta-spark_2.12/3.2.0/delta-spark_2.12-3.2.0.jar
+
+	==== spark-packages: tried
+
+	  https://repos.spark-packages.org/io/delta/delta-spark_2.12/3.2.0/delta-spark_2.12-3.2.0.pom
+
+	  -- artifact io.delta#delta-spark_2.12;3.2.0!delta-spark_2.12.jar:
+
+	  https://repos.spark-packages.org/io/delta/delta-spark_2.12/3.2.0/delta-spark_2.12-3.2.0.jar
+
+		::::::::::::::::::::::::::::::::::::::::::::::
+
+		::          UNRESOLVED DEPENDENCIES         ::
+
+		::::::::::::::::::::::::::::::::::::::::::::::
+
+		:: io.delta#delta-spark_2.12;3.2.0: not found
+
+		::::::::::::::::::::::::::::::::::::::::::::::
+
+
+
+:: USE VERBOSE OR DEBUG MESSAGE LEVEL FOR MORE DETAILS
+Exception in thread "main" java.lang.RuntimeException: [unresolved dependency: io.delta#delta-spark_2.12;3.2.0: not found]
+	at org.apache.spark.deploy.SparkSubmitUtils$.resolveMavenCoordinates(SparkSubmit.scala:1537)
+	at org.apache.spark.util.DependencyUtils$.resolveMavenDependencies(DependencyUtils.scala:185)
+	at org.apache.spark.deploy.SparkSubmit.prepareSubmitEnvironment(SparkSubmit.scala:334)
+	at org.apache.spark.deploy.SparkSubmit.org$apache$spark$deploy$SparkSubmit$$runMain(SparkSubmit.scala:964)
+	at org.apache.spark.deploy.SparkSubmit.doRunMain$1(SparkSubmit.scala:194)
+	at org.apache.spark.deploy.SparkSubmit.submit(SparkSubmit.scala:217)
+	at org.apache.spark.deploy.SparkSubmit.doSubmit(SparkSubmit.scala:91)
+	at org.apache.spark.deploy.SparkSubmit$$anon$2.doSubmit(SparkSubmit.scala:1120)
+	at org.apache.spark.deploy.SparkSubmit$.main(SparkSubmit.scala:1129)
+	at org.apache.spark.deploy.SparkSubmit.main(SparkSubmit.scala)
+Traceback (most recent call last):
+  File "<frozen runpy>", line 198, in _run_module_as_main
+  File "<frozen runpy>", line 88, in _run_code
+  File "/home/claude/capstone/src/lakehouse/delta_pipeline.py", line 188, in <module>
+    run_lakehouse_demo(wave1, wave2)
+  File "/home/claude/capstone/src/lakehouse/delta_pipeline.py", line 141, in run_lakehouse_demo
+    spark = create_spark()
+            ^^^^^^^^^^^^^^
+  File "/home/claude/capstone/src/lakehouse/delta_pipeline.py", line 55, in create_spark
+    return configure_spark_with_delta_pip(builder).getOrCreate()
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.12/dist-packages/pyspark/sql/session.py", line 497, in getOrCreate
+    sc = SparkContext.getOrCreate(sparkConf)
+         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.12/dist-packages/pyspark/context.py", line 515, in getOrCreate
+    SparkContext(conf=conf or SparkConf())
+  File "/usr/local/lib/python3.12/dist-packages/pyspark/context.py", line 201, in __init__
+    SparkContext._ensure_initialized(self, gateway=gateway, conf=conf)
+  File "/usr/local/lib/python3.12/dist-packages/pyspark/context.py", line 436, in _ensure_initialized
+    SparkContext._gateway = gateway or launch_gateway(conf)
+                                       ^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.12/dist-packages/pyspark/java_gateway.py", line 107, in launch_gateway
+    raise PySparkRuntimeError(
+pyspark.errors.exceptions.base.PySparkRuntimeError: [JAVA_GATEWAY_EXITED] Java gateway process exited before sending its port number.
+[JAVA_GATEWAY / MAVEN BLOCKED — real error, kept as honest evidence of sandbox network limits, see README]
