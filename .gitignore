@@ -1,0 +1,45 @@
+# --- secrets ---
+.env
+*.pem
+kaggle.json
+**/kaggle.json
+service_account*.json
+
+# --- data & warehouse artifacts (large / regenerable) ---
+data/raw/
+data/bronze/
+data/silver/
+data/gold/
+data/quarantine/
+data/chroma/
+*.parquet
+spark-warehouse/
+metastore_db/
+derby.log
+
+# --- Kafka local broker (downloaded at runtime in Colab, never committed) ---
+kafka_2.13-*/
+kafka_2.13-*.tgz
+
+# --- Python ---
+__pycache__/
+*.pyc
+.ipynb_checkpoints/
+.venv/
+venv/
+*.egg-info/
+
+# --- Airflow ---
+airflow.db
+airflow.cfg
+airflow-webserver.pid
+logs/
+standalone_admin_password.txt
+
+# --- Great Expectations local build artifacts ---
+great_expectations/uncommitted/
+
+# --- OS / editor ---
+.DS_Store
+.idea/
+.vscode/
