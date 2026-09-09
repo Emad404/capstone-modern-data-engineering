@@ -1,0 +1,5 @@
+=== RUN 1: clean, contract-valid data (should PASS) ===
+✅ Quality gate PASSED — 6/6 expectations green.
+
+=== RUN 2: inject a duplicate order_id + an out-of-range quantity (should FAIL and HALT) ===
+✅ Quality gate correctly BLOCKED the pipeline: Quality gate FAILED (2 expectation(s)): expect_column_values_to_be_unique(order_id); expect_column_values_to_be_between(quantity)
