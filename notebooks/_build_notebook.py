@@ -64,6 +64,23 @@ code("""\
 
 code("""\
 %%bash
+# If a broker from an earlier run in this session is already listening, don't try to
+# download/format/start a second one on the same port. (Using a Python socket check here
+# rather than bash's /dev/tcp — that trick proved unreliable in testing.)
+if python3 -c "
+import socket, sys
+s = socket.socket()
+s.settimeout(1)
+try:
+    s.connect(('127.0.0.1', 9092))
+    sys.exit(0)
+except OSError:
+    sys.exit(1)
+"; then
+  echo "Kafka is already running on localhost:9092 — skipping re-download and re-start."
+  exit 0
+fi
+
 # Tries a few known mirrors in order and verifies each download is a real gzip file
 # before unpacking, instead of silently failing on one hardcoded URL like before.
 set -e

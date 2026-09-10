@@ -136,7 +136,8 @@ def prove_schema_enforcement(spark: SparkSession) -> None:
         bad_df.write.format("delta").mode("append").save(SILVER_PATH)
         print("  ❌ UNEXPECTED: incompatible write succeeded — schema enforcement failed!")
     except Exception as exc:  # noqa: BLE001
-        print(f"  ✅ Delta correctly REJECTED the write: {type(exc).__name__}: {str(exc).splitlines()[0][:160]}")
+        first_line = (str(exc).splitlines() or ["<empty exception message>"])[0]
+        print(f"  ✅ Delta correctly REJECTED the write: {type(exc).__name__}: {first_line[:160]}")
 
 
 def build_gold(spark: SparkSession) -> None:

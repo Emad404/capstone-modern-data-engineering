@@ -50,6 +50,8 @@ def consume_and_gate(max_messages: int = 11, timeout_s: int = 15) -> tuple[list[
         else:
             quarantined.append(quarantine_record.model_dump())
             print(f"  [CONSUMER] ❌ quarantined {raw.get('order_id', '?')} -> {quarantine_record.reason}")
+        if len(valid) + len(quarantined) >= max_messages:
+            break  # got everything we expect — no need to wait out the idle timeout
     consumer.close()
 
     _write_quarantine(quarantined)

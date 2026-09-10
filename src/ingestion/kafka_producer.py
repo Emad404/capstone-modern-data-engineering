@@ -6,13 +6,9 @@ Publishes a mix of clean and deliberately malformed order events to the
 and pattern as the Day 2 lab's "Real Kafka Round Trip" section, applied here
 to the capstone's order-event shape instead of sensor readings.
 
-Requires a running Kafka broker at BOOTSTRAP_SERVERS. In Colab:
-
-    !pip install kafka-python
-    !curl -sSOL https://downloads.apache.org/kafka/3.7.0/kafka_2.13-3.7.0.tgz && tar -xzf kafka_2.13-3.7.0.tgz
-    !cd kafka_2.13-3.7.0 && bin/kafka-storage.sh format -t $(bin/kafka-storage.sh random-uuid) -c config/kraft/server.properties
-    !cd kafka_2.13-3.7.0 && nohup bin/kafka-server-start.sh config/kraft/server.properties > /tmp/kafka.log 2>&1 &
-    # wait ~15-20s for the broker to finish starting
+Requires a running Kafka broker at BOOTSTRAP_SERVERS. See the Kafka bootstrap cell in
+notebooks/capstone_pipeline.ipynb for the actual setup used (tries multiple Apache mirrors,
+validates the download, and wipes any stale KRaft metadata before formatting).
 """
 from __future__ import annotations
 
