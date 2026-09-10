@@ -105,6 +105,12 @@ fi
 
 tar -xzf "$FILE"
 cd "$DIR"
+
+# Wipe any Kafka log/metadata directory left over from a previous attempt in this
+# session. kafka-storage.sh format generates a fresh cluster.id every run, and it
+# refuses to proceed if stale on-disk metadata from an old cluster.id is still there.
+rm -rf /tmp/kraft-combined-logs
+
 bin/kafka-storage.sh format -t "$(bin/kafka-storage.sh random-uuid)" -c config/kraft/server.properties
 nohup bin/kafka-server-start.sh config/kraft/server.properties > /tmp/kafka.log 2>&1 &
 echo "Kafka broker starting in the background (PID $!)."
